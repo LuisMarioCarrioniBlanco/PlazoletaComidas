@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.plazoleta.usuarios.application.service.UsuarioServiceTest
+-------------------------------------------------------------------------------
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.782 s -- in com.plazoleta.usuarios.application.service.UsuarioServiceTest

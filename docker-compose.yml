@@ -1,0 +1,77 @@
+services:
+  usuarios-db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: usuarios
+      MYSQL_USER: ${DB_USERNAME:-plazoleta}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-plazoleta-dev-change-me}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root-dev-change-me}
+    ports:
+      - "3307:3306"
+    volumes:
+      - usuarios_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root-dev-change-me}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  plazoleta-db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: plazoleta
+      MYSQL_USER: ${DB_USERNAME:-plazoleta}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-plazoleta-dev-change-me}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root-dev-change-me}
+    ports:
+      - "3308:3306"
+    volumes:
+      - plazoleta_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root-dev-change-me}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  usuarios-service:
+    build:
+      context: ./usuarios-service
+      dockerfile: Dockerfile
+    environment:
+      SERVER_PORT: 8081
+      DB_URL: jdbc:mysql://usuarios-db:3306/usuarios?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: ${DB_USERNAME:-plazoleta}
+      DB_PASSWORD: ${DB_PASSWORD:-plazoleta-dev-change-me}
+      JWT_SECRET: ${JWT_SECRET:-local-development-secret-change-this-value-1234567890}
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-local-internal-token-change-before-deploy}
+      INITIAL_ADMIN_EMAIL: ${INITIAL_ADMIN_EMAIL:-admin@plazoleta.local}
+      INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:-Admin123!}
+    ports:
+      - "8081:8081"
+    depends_on:
+      usuarios-db:
+        condition: service_healthy
+
+  plazoleta-service:
+    build:
+      context: ./plazoleta-service
+      dockerfile: Dockerfile
+    environment:
+      SERVER_PORT: 8082
+      DB_URL: jdbc:mysql://plazoleta-db:3306/plazoleta?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: ${DB_USERNAME:-plazoleta}
+      DB_PASSWORD: ${DB_PASSWORD:-plazoleta-dev-change-me}
+      JWT_SECRET: ${JWT_SECRET:-local-development-secret-change-this-value-1234567890}
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-local-internal-token-change-before-deploy}
+      USUARIOS_URL: http://usuarios-service:8081
+    ports:
+      - "8082:8082"
+    depends_on:
+      plazoleta-db:
+        condition: service_healthy
+      usuarios-service:
+        condition: service_started
+
+volumes:
+  usuarios_data:
+  plazoleta_data:
