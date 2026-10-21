@@ -1,0 +1,32 @@
+server:
+  port: ${SERVER_PORT:8082}
+
+spring:
+  application:
+    name: plazoleta-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/plazoleta?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: plazoleta
+    password: plazoleta-dev-change-me
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:local-development-secret-change-this-value-1234567890}
+
+plazoleta:
+  internal-token: ${INTERNAL_API_TOKEN:local-internal-token-change-before-deploy}
+
+servicios:
+  usuarios:
+    url: ${USUARIOS_URL:http://localhost:8081}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
